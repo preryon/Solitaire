@@ -57,6 +57,7 @@ public partial class PlayingCardViewModel : ViewModelBase
     [ObservableProperty] private bool _isPlayable;
     [ObservableProperty] private double _faceDownOffset;
     [ObservableProperty] private double _faceUpOffset;
+    [ObservableProperty] private bool _isSelected;
  
     public void Reset()
     {
@@ -64,6 +65,7 @@ public partial class PlayingCardViewModel : ViewModelBase
         IsFaceDown = true;
         FaceDownOffset = 0;
         FaceUpOffset = 0;
+        IsSelected = false;
     }
  
 }

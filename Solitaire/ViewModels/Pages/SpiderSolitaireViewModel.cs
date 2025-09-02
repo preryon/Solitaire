@@ -240,19 +240,92 @@ public partial class SpiderSolitaireViewModel : CardGameViewModel
         return true;
     }
 
+    /// <summary>
+    /// Tries to automatically move a card to an appropriate destination if possible.
+    /// This method is called when a card is double-tapped.
+    /// </summary>
+    /// <param name="card">The card to try to auto-move.</param>
+    /// <returns>True if the card was successfully moved, false otherwise.</returns>
+    public override async Task<bool> TryAutoMoveCard(PlayingCardViewModel card)
+    {
+        // Only allow auto-move if the card is playable and face up
+        if (!card.IsPlayable || card.IsFaceDown)
+            return false;
+
+        // Find the source tableau
+        var sourceTableau = _tableauSet.FirstOrDefault(t => t.Contains(card));
+        if (sourceTableau == null)
+            return false;
+
+        // First priority: Try to move to complete sequences (cards that fit perfectly)
+        if (TryMoveCardToCompleteSequence(card, sourceTableau))
+            return true;
+
+        // Second priority: Try to move to empty tableaus (preferred in Spider)
+        var emptyTableau = _tableauSet.FirstOrDefault(t => t.Count == 0);
+        if (emptyTableau != null && !sourceTableau.SequenceEqual(emptyTableau))
+        {
+            if (CheckAndMoveCard(sourceTableau, emptyTableau, card))
+                return true;
+        }
+
+        // Third priority: Try to move to other tableaus where it fits
+        foreach (var targetTableau in _tableauSet)
+        {
+            if (targetTableau.Count > 0 && !sourceTableau.SequenceEqual(targetTableau))
+            {
+                if (CheckAndMoveCard(sourceTableau, targetTableau, card))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to move a card to complete a sequence (higher priority move).
+    /// </summary>
+    /// <param name="card">The card to try to move.</param>
+    /// <param name="sourceTableau">The source tableau.</param>
+    /// <returns>True if the card was successfully moved, false otherwise.</returns>
+    private bool TryMoveCardToCompleteSequence(PlayingCardViewModel card, IList<PlayingCardViewModel> sourceTableau)
+    {
+        foreach (var targetTableau in _tableauSet)
+        {
+            if (targetTableau.Count > 0 && !sourceTableau.SequenceEqual(targetTableau))
+            {
+                // Check if this would complete a sequence (card fits perfectly)
+                var targetCard = targetTableau.Last();
+                if (targetCard.Value == card.Value + 1)
+                {
+                    if (CheckAndMoveCard(sourceTableau, targetTableau, card))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void DoMoveCard(IList<PlayingCardViewModel> from,
         IList<PlayingCardViewModel> to,
         PlayingCardViewModel card, int scoreModifier)
     {
         //  Identify the run of cards we're moving.
         var run = new List<PlayingCardViewModel>();
-        for (var i = from.IndexOf(card); i < from.Count; i++)
+        var startIndex = from.IndexOf(card);
+        for (var i = startIndex; i < from.Count; i++)
             run.Add(from[i]);
 
         //  This function will move the card, as well as setting the 
         //  playable properties of the cards revealed.
-        foreach (var runCard in run)
-            from.Remove(runCard);
+        
+        //  SAFETY FIX: Remove cards from the end to avoid index shifting issues
+        //  Remove cards in reverse order to maintain correct indices
+        for (int i = from.Count - 1; i >= startIndex; i--)
+        {
+            from.RemoveAt(i);
+        }
+        
         foreach (var runCard in run)
             to.Add(runCard);
 

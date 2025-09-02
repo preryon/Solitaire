@@ -140,7 +140,7 @@
                 </Canvas>
             </Grid>
         </Viewbox>
-        <controls:DeckControls VerticalAlignment="Bottom" />
+        <controls:DeckControls Margin="0,0,0,20"  VerticalAlignment="Bottom" />
         <controls:WinDialog IsVisible="{Binding IsGameWon}" />
     </Panel>
 </UserControl>

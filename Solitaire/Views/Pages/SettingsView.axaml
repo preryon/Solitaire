@@ -13,7 +13,7 @@
              d:DesignHeight="300" d:DesignWidth="300">
 
 
-    <Viewbox MaxWidth="400" Margin="20">
+    <Viewbox MaxWidth="800" Margin="20">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
 
 
@@ -55,7 +55,7 @@
                             </Border>
 
                         </Grid>
-                        <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="230"
+                        <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="300"
                                 Content="{Binding DrawModeText}"
                                 Command="{Binding  DrawModeCommand}" />
 
@@ -88,12 +88,12 @@
                             </Border>
 
                         </Grid>
-                        <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="230"
+                        <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="300"
                                 Content="{Binding DifficultyText}"
                                 Command="{Binding DifficultyCommand}" />
 
 
-                        <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="230"
+                        <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="300"
                                 Content="Back"
                                 Command="{Binding NavigateToTitleCommand}" />
 

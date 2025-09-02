@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using Solitaire.Models;
 using Solitaire.Utils;
 using Solitaire.ViewModels.Pages;
+using System.Threading.Tasks;
 
 namespace Solitaire.ViewModels;
 
@@ -39,16 +40,32 @@ public abstract partial class CardGameViewModel : ViewModelBase
 
     private void UndoMove()
     {
+        // Add debugging to understand when undo is being triggered
+        System.Diagnostics.Debug.WriteLine($"UndoMove called - Stack count: {_moveStack.Count}");
+        
         if (_moveStack.Count > 0)
         {
-            var operations = _moveStack.Pop();
-
-            foreach (var operation in operations)
+            try
             {
-                operation.Revert(this);
-            }
+                var operations = _moveStack.Pop();
+                System.Diagnostics.Debug.WriteLine($"UndoMove - Popped {operations.Length} operations");
 
-           
+                foreach (var operation in operations)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Reverting operation: {operation.GetType().Name}");
+                    operation.Revert(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UndoMove failed with exception: {ex.Message}");
+                // If undo fails, clear the stack to prevent further corruption
+                _moveStack.Clear();
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("UndoMove called but stack is empty");
         }
     }
 
@@ -120,11 +137,25 @@ public abstract partial class CardGameViewModel : ViewModelBase
         bool checkOnly = false);
 
     /// <summary>
+    /// Tries to automatically move a card to an appropriate destination if possible.
+    /// This method can be overridden by specific game implementations.
+    /// </summary>
+    /// <param name="card">The card to try to auto-move.</param>
+    /// <returns>True if the card was successfully moved, false otherwise.</returns>
+    public virtual async Task<bool> TryAutoMoveCard(PlayingCardViewModel card)
+    {
+        // Default implementation does nothing
+        // Specific game implementations should override this method
+        return await Task.FromResult(false);
+    }
+
+    /// <summary>
     /// Deals a new game.
     /// </summary>
     protected void ResetInternalState()
     {
         ClearUndoStack();
+        ClearCardSelection();
         
         //  Stop the timer and reset the game data.
         StopTimer();
@@ -132,6 +163,11 @@ public abstract partial class CardGameViewModel : ViewModelBase
         Moves = 0;
         Score = 0;
         IsGameWon = false;
+        
+        // Explicitly notify property changes to ensure UI updates
+        OnPropertyChanged(nameof(Score));
+        OnPropertyChanged(nameof(Moves));
+        OnPropertyChanged(nameof(ElapsedTime));
         OnPropertyChanged(nameof(IsGameWon));
     }
 
@@ -227,6 +263,87 @@ public abstract partial class CardGameViewModel : ViewModelBase
         public abstract void Revert(CardGameViewModel game);
     }
 
+    /// <summary>
+    /// Currently selected card for visual feedback and ease of use.
+    /// </summary>
+    protected PlayingCardViewModel? _selectedCard;
+
+    /// <summary>
+    /// Gets the currently selected card.
+    /// </summary>
+    public PlayingCardViewModel? SelectedCard => _selectedCard;
+
+    /// <summary>
+    /// Selects a card for visual feedback and ease of use.
+    /// </summary>
+    /// <param name="card">The card to select.</param>
+    public virtual void SelectCard(PlayingCardViewModel card)
+    {
+        System.Diagnostics.Debug.WriteLine($"SelectCard called for: {card.CardType}");
+        
+        // FIX: Prevent any selection during auto-move to avoid race conditions
+        if (this is KlondikeSolitaireViewModel klondikeGame && klondikeGame.IsAutoMoving)
+        {
+            System.Diagnostics.Debug.WriteLine($"SelectCard blocked - auto-move in progress for {card.CardType}");
+            return;
+        }
+        
+        // Deselect previously selected card
+        if (_selectedCard != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"Deselecting previous card: {_selectedCard.CardType}");
+            _selectedCard.IsSelected = false;
+            
+            // Update visual state of the previously selected card
+            UpdateCardVisualSelection(_selectedCard, false);
+        }
+
+        // Select the new card
+        _selectedCard = card;
+        card.IsSelected = true;
+        
+        System.Diagnostics.Debug.WriteLine($"Card {card.CardType} now selected, IsSelected: {card.IsSelected}");
+        
+        // Update visual state of the newly selected card
+        UpdateCardVisualSelection(card, true);
+    }
+
+    /// <summary>
+    /// Deselects the currently selected card.
+    /// </summary>
+    public virtual void DeselectCard()
+    {
+        if (_selectedCard != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"Deselecting card: {_selectedCard.CardType}");
+            _selectedCard.IsSelected = false;
+            
+            // Update visual state of the deselected card
+            UpdateCardVisualSelection(_selectedCard, false);
+            
+            _selectedCard = null;
+        }
+    }
+
+    /// <summary>
+    /// Clears the card selection when resetting the game.
+    /// </summary>
+    protected void ClearCardSelection()
+    {
+        DeselectCard();
+    }
+
+    /// <summary>
+    /// Updates the visual selection state of a card by finding its control and calling UpdateSelectionState.
+    /// </summary>
+    /// <param name="card">The card to update.</param>
+    /// <param name="isSelected">Whether the card should appear selected.</param>
+    protected virtual void UpdateCardVisualSelection(PlayingCardViewModel card, bool isSelected)
+    {
+        // This method will be overridden by derived classes to provide access to the card controls
+        System.Diagnostics.Debug.WriteLine($"UpdateCardVisualSelection called for {card.CardType}, isSelected: {isSelected}");
+    }
+
     public class GenericOperation : CardOperation
     {
         private readonly Action _action;
@@ -263,15 +380,24 @@ public abstract partial class CardGameViewModel : ViewModelBase
         
         public override void Revert(CardGameViewModel game)
         {
-
+            // Revert the score and moves
             game.Score -= Score;
-
-            foreach (var runCard in Run)
-                From.Add(runCard);
-            foreach (var runCard in Run)
-                To.Remove(runCard);
-
             game.Moves--;
+
+            // Create a copy of the run to avoid modification during iteration
+            var runCopy = Run.ToList();
+            
+            // Remove cards from destination first
+            foreach (var runCard in runCopy)
+            {
+                To.Remove(runCard);
+            }
+            
+            // Then add cards back to source
+            foreach (var runCard in runCopy)
+            {
+                From.Add(runCard);
+            }
         }
     }
 }

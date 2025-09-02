@@ -61,5 +61,11 @@
                 <Transitions />
             </Setter>
         </Style>
+
+        <Style Selector="^.selected">
+            <Setter Property="BorderBrush" Value="#FFD09C14" />
+            <Setter Property="BorderThickness" Value="3" />
+            <Setter Property="Border.BoxShadow" Value="0 0 20 5 #FFD09C14" />
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

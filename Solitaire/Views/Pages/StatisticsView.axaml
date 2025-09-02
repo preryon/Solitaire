@@ -13,11 +13,11 @@
              d:DesignHeight="300" d:DesignWidth="300">
 
 
-    <Viewbox MaxWidth="1000" Margin="20">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
+    <Viewbox MaxWidth="1800" Margin="30">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="15">
 
 
-            <Viewbox Margin="40,10,40,40" StretchDirection="DownOnly" ClipToBounds="False">
+            <Viewbox Margin="50,15,50,50" StretchDirection="DownOnly" ClipToBounds="False">
                 <!-- The casino commands. -->
                 <controls:TrayContainer Classes="downDeck">
                     <controls:TrayContainer.RenderTransform>
@@ -25,21 +25,21 @@
                     </controls:TrayContainer.RenderTransform>
                     <DockPanel LastChildFill="True">
                         <Viewbox DockPanel.Dock="Bottom">
-                            <StackPanel Spacing="10" Orientation="Horizontal" Margin="10">
+                            <StackPanel Spacing="20" Orientation="Horizontal" Margin="20">
 
-                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="200"
+                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="350"
                                         Content="Reset Klondike"
                                         Command="{Binding ResetKlondikeStatsCommand}" />
 
-                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="200"
+                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="350"
                                         Content="Reset  FreeCell"
                                         Command="{Binding  ResetFreeCellStatsCommand}" />
 
-                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="200"
+                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="350"
                                         Content="Reset Spider"
                                         Command="{Binding  ResetSpiderStatsCommand}" />
 
-                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="200"
+                                <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="350"
                                         Content="Back"
                                         Command="{Binding NavigateToTitleCommand}" />
 
@@ -47,7 +47,7 @@
 
 
                         </Viewbox>
-                        <Grid ColumnDefinitions="*,*,*" MinWidth="600" Margin="10">
+                        <Grid ColumnDefinitions="*,*,*" MinWidth="1500" Margin="40">
 
 
                             <ContentControl Grid.Column="0" Content="{Binding KlondikeStatsInstance}" />

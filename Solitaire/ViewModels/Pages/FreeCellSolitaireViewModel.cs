@@ -222,6 +222,70 @@ public partial class FreeCellSolitaireViewModel : CardGameViewModel
         return false;
     }
 
+    /// <summary>
+    /// Tries to automatically move a card to an appropriate destination if possible.
+    /// This method is called when a card is double-tapped.
+    /// </summary>
+    /// <param name="card">The card to try to auto-move.</param>
+    /// <returns>True if the card was successfully moved, false otherwise.</returns>
+    public override async Task<bool> TryAutoMoveCard(PlayingCardViewModel card)
+    {
+        // Only allow auto-move if the card is playable and face up
+        if (!card.IsPlayable || card.IsFaceDown)
+            return false;
+
+        // First priority: Try to move to foundations (upper stacks)
+        if (TryMoveCardToAppropriateFoundation(card))
+            return true;
+
+        // Second priority: Try to move to other tableaus (lower stacks)
+        return TryMoveCardToAppropriateTableau(card);
+    }
+
+    /// <summary>
+    /// Tries to move a card to an appropriate tableau if it can't go to a foundation.
+    /// </summary>
+    /// <param name="card">The card to try to move.</param>
+    /// <returns>True if the card was successfully moved, false otherwise.</returns>
+    private bool TryMoveCardToAppropriateTableau(PlayingCardViewModel card)
+    {
+        var tableauPlusCells = _tableauSet.Concat(_cells).ToList();
+        
+        // Find the source location
+        var sourceLocation = tableauPlusCells.FirstOrDefault(l => l.Contains(card));
+        if (sourceLocation == null)
+            return false;
+
+        // Try to move to other tableaus where it fits
+        foreach (var targetTableau in _tableauSet)
+        {
+            if (targetTableau.Count > 0 && !sourceLocation.SequenceEqual(targetTableau))
+            {
+                // Check if the card can be placed on this tableau
+                if (card.Value == 12 || // King can go on empty tableau
+                    (targetTableau.Count > 0 && targetTableau.Last().Colour != card.Colour && 
+                     targetTableau.Last().Value == card.Value + 1))
+                {
+                    if (CheckAndMoveCard(sourceLocation, targetTableau, card))
+                        return true;
+                }
+            }
+        }
+
+        // Try empty tableaus last (King can go anywhere)
+        if (card.Value == 12)
+        {
+            var emptyTableau = _tableauSet.FirstOrDefault(t => t.Count == 0);
+            if (emptyTableau != null && !sourceLocation.SequenceEqual(emptyTableau))
+            {
+                if (CheckAndMoveCard(sourceLocation, emptyTableau, card))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     private CardSuit GetSuitForFoundations(IList<PlayingCardViewModel> cell)
     {
         if (ReferenceEquals(cell, _foundations[0]))
@@ -399,13 +463,20 @@ public partial class FreeCellSolitaireViewModel : CardGameViewModel
     {
         //  Identify the run of cards we're moving.
         var run = new List<PlayingCardViewModel>();
-        for (var i = from.IndexOf(card); i < from.Count; i++)
+        var startIndex = from.IndexOf(card);
+        for (var i = startIndex; i < from.Count; i++)
             run.Add(from[i]);
 
         //  This function will move the card, as well as setting the 
         //  playable properties of the cards revealed.
-        foreach (var runCard in run)
-            from.Remove(runCard);
+        
+        //  SAFETY FIX: Remove cards from the end to avoid index shifting issues
+        //  Remove cards in reverse order to maintain correct indices
+        for (int i = from.Count - 1; i >= startIndex; i--)
+        {
+            from.RemoveAt(i);
+        }
+        
         foreach (var runCard in run)
             to.Add(runCard);
 

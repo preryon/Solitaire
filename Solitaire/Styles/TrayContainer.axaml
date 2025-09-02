@@ -21,8 +21,7 @@
                         Padding="8"
                         BorderThickness="2"
                         BorderBrush="#30FFFFFF"
-                        Background="{TemplateBinding BorderBrush}"
-                        BoxShadow="{TemplateBinding Border.BoxShadow}">
+                        Background="{TemplateBinding BorderBrush}">
                     <ContentPresenter x:Name="PART_ContentPresenter"
                                       CornerRadius="8"
                                       BorderThickness="2"
@@ -35,6 +34,7 @@
             </ControlTemplate>
         </Setter>
 
+        <!-- Simplified styles without complex animations -->
         <Style Selector="^.downDeck">
             <Setter Property="RenderTransform" Value="translateY(70px)" />
             <Setter Property="Transitions">
@@ -47,23 +47,5 @@
         <Style Selector="^.downDeck.animateUp">
             <Setter Property="RenderTransform" Value="translateY(0px)" />
         </Style>
-
-        <ControlTheme.Animations>
-            <Animation Duration="0:1:0" IterationCount="Infinite" PlaybackDirection="Alternate">
-                <KeyFrame Cue="0%">
-                    <Setter Property="BorderBrush">
-                        <LinearGradientBrush StartPoint="-1000,1000" EndPoint="1000,0"
-                                             GradientStops="{StaticResource GoldBrush}"
-                                             Transform="rotate(120deg)" />
-                    </Setter>
-                </KeyFrame>
-                <KeyFrame Cue="100%">
-                    <Setter Property="BorderBrush">
-                        <LinearGradientBrush StartPoint="-2000,1000" EndPoint="0,-1000"
-                                             GradientStops="{StaticResource GoldBrush}" />
-                    </Setter>
-                </KeyFrame>
-            </Animation>
-        </ControlTheme.Animations>
     </ControlTheme>
 </ResourceDictionary>
