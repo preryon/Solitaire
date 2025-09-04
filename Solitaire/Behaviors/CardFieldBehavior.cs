@@ -771,7 +771,9 @@ public class CardFieldBehavior : Behavior<Canvas>
             System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Pre-emptive cooldown count: {_recentlyAutoMovedCards.Count} !!!");
             
             // Try to auto-move the card (now async)
+            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: About to call TryAutoMoveCard for {card.CardType} !!!");
             var success = await game.TryAutoMoveCard(card);
+            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: TryAutoMoveCard returned: {success} for {card.CardType} !!!");
             
             // FIX: After auto-move, ensure comprehensive cleanup
             if (success)

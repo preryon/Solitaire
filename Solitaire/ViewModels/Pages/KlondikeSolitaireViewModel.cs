@@ -705,16 +705,10 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 System.Diagnostics.Debug.WriteLine($"  Card: {card.CardType}, Value: {card.Value}, Colour: {card.Colour}");
                 System.Diagnostics.Debug.WriteLine($"  Target tableau count: {to.Count}");
                 
-                // FIX: Check if the card is the top card of its stack (no cards on top)
+                // Note: In Klondike Solitaire, you can move cards from the middle of a tableau stack
+                // as long as you move the entire sequence from that card to the top
                 var cardIndex = from.IndexOf(card);
-                var isTopCard = cardIndex == from.Count - 1;
-                System.Diagnostics.Debug.WriteLine($"  Card index: {cardIndex}, Stack count: {from.Count}, Is top card: {isTopCard}");
-                
-                if (!isTopCard)
-                {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - card is not the top card of its stack");
-                    return false;
-                }
+                System.Diagnostics.Debug.WriteLine($"  Card index: {cardIndex}, Stack count: {from.Count}");
                 
                 if (to.Count > 0)
                 {

@@ -26,7 +26,7 @@ public class PlayingCard : TemplatedControl
         remove => RemoveHandler(SingleTappedEvent, value);
     }
 
-    private DateTime _lastTapTime = DateTime.MinValue;
+    private DateTime _lastTapTime = DateTime.Now;
     private bool _isProcessingDoubleTap = false;
     private const int DoubleTapThresholdMs = 300; // 300ms threshold for double-tap
 
