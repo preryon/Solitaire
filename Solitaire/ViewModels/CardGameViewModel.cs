@@ -41,31 +41,26 @@ public abstract partial class CardGameViewModel : ViewModelBase
     private void UndoMove()
     {
         // Add debugging to understand when undo is being triggered
-        System.Diagnostics.Debug.WriteLine($"UndoMove called - Stack count: {_moveStack.Count}");
         
         if (_moveStack.Count > 0)
         {
             try
             {
                 var operations = _moveStack.Pop();
-                System.Diagnostics.Debug.WriteLine($"UndoMove - Popped {operations.Length} operations");
 
                 foreach (var operation in operations)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Reverting operation: {operation.GetType().Name}");
                     operation.Revert(this);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"UndoMove failed with exception: {ex.Message}");
                 // If undo fails, clear the stack to prevent further corruption
                 _moveStack.Clear();
             }
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("UndoMove called but stack is empty");
         }
     }
 
@@ -279,19 +274,16 @@ public abstract partial class CardGameViewModel : ViewModelBase
     /// <param name="card">The card to select.</param>
     public virtual void SelectCard(PlayingCardViewModel card)
     {
-        System.Diagnostics.Debug.WriteLine($"SelectCard called for: {card.CardType}");
         
         // FIX: Prevent any selection during auto-move to avoid race conditions
         if (this is KlondikeSolitaireViewModel klondikeGame && klondikeGame.IsAutoMoving)
         {
-            System.Diagnostics.Debug.WriteLine($"SelectCard blocked - auto-move in progress for {card.CardType}");
             return;
         }
         
         // Deselect previously selected card
         if (_selectedCard != null)
         {
-            System.Diagnostics.Debug.WriteLine($"Deselecting previous card: {_selectedCard.CardType}");
             _selectedCard.IsSelected = false;
             
             // Update visual state of the previously selected card
@@ -302,7 +294,6 @@ public abstract partial class CardGameViewModel : ViewModelBase
         _selectedCard = card;
         card.IsSelected = true;
         
-        System.Diagnostics.Debug.WriteLine($"Card {card.CardType} now selected, IsSelected: {card.IsSelected}");
         
         // Update visual state of the newly selected card
         UpdateCardVisualSelection(card, true);
@@ -315,7 +306,6 @@ public abstract partial class CardGameViewModel : ViewModelBase
     {
         if (_selectedCard != null)
         {
-            System.Diagnostics.Debug.WriteLine($"Deselecting card: {_selectedCard.CardType}");
             _selectedCard.IsSelected = false;
             
             // Update visual state of the deselected card
@@ -341,7 +331,6 @@ public abstract partial class CardGameViewModel : ViewModelBase
     protected virtual void UpdateCardVisualSelection(PlayingCardViewModel card, bool isSelected)
     {
         // This method will be overridden by derived classes to provide access to the card controls
-        System.Diagnostics.Debug.WriteLine($"UpdateCardVisualSelection called for {card.CardType}, isSelected: {isSelected}");
     }
 
     public class GenericOperation : CardOperation

@@ -55,39 +55,30 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
     /// <returns></returns>Odd, it's still 
     public override IList<PlayingCardViewModel>? GetCardCollection(PlayingCardViewModel card)
     {
-        System.Diagnostics.Debug.WriteLine($"GetCardCollection called for card: {card.CardType}");
         
         if (Stock.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"Card {card.CardType} found in Stock");
             return Stock;
         }
         
         if (Waste.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"Card {card.CardType} found in Waste");
             return Waste;
         }
 
         foreach (var foundation in _foundations.Where(foundation => foundation.Contains(card)))
         {
-            System.Diagnostics.Debug.WriteLine($"Card {card.CardType} found in Foundation");
             return foundation;
         }
 
-        System.Diagnostics.Debug.WriteLine($"Checking {_tableauSet.Count} tableaus for card {card.CardType}");
         for (int i = 0; i < _tableauSet.Count; i++)
         {
-            System.Diagnostics.Debug.WriteLine($"  Checking Tableau{i + 1} (index {i}) - Contains {card.CardType}: {_tableauSet[i].Contains(card)}");
             if (_tableauSet[i].Contains(card))
             {
-                System.Diagnostics.Debug.WriteLine($"Card {card.CardType} found in Tableau{i + 1} (index {i})");
-                System.Diagnostics.Debug.WriteLine($"Tableau{i + 1} reference: {_tableauSet[i].GetHashCode()}");
                 return _tableauSet[i];
             }
         }
 
-        System.Diagnostics.Debug.WriteLine($"Card {card.CardType} not found in any collection!");
         return null;
     }
 
@@ -251,7 +242,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 // Clear any selection state when moving to waste pile
                 if (card.IsSelected)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Clearing selection for card {card.CardType} moved to waste pile");
                     card.IsSelected = false;
                 }
                 
@@ -317,14 +307,12 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
         // Prevent auto-move from interfering with recently manually moved cards
         if (_recentlyMovedCards.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"TryMoveCardToAppropriateFoundation rejected - card recently manually moved");
             return false;
         }
 
         // Additional protection: check if the card was recently moved to foundation
         if (_recentlyMovedToFoundation.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"TryMoveCardToAppropriateFoundation rejected - card recently moved to foundation");
             return false;
         }
 
@@ -379,26 +367,22 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
     public override async Task<bool> TryAutoMoveCard(PlayingCardViewModel card)
     {
         // Add debugging to understand when this method is being called
-        System.Diagnostics.Debug.WriteLine($"TryAutoMoveCard called for {card.CardType} - IsPlayable: {card.IsPlayable}, IsFaceDown: {card.IsFaceDown}");
         
         // Only allow auto-move if the card is playable and face up
         if (!card.IsPlayable || card.IsFaceDown)
         {
-            System.Diagnostics.Debug.WriteLine($"TryAutoMoveCard rejected - not playable or face down");
             return false;
         }
 
         // Prevent the same card from being processed multiple times in quick succession
         if (_processingCards.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"TryAutoMoveCard rejected - already processing");
             return false;
         }
 
         // Additional protection: check if the card was recently moved
         if (_recentlyMovedCards.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"TryAutoMoveCard rejected - recently moved");
             return false;
         }
 
@@ -409,12 +393,10 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
 
             // Instead of trying to recreate the animation system, 
             // let's use the existing auto-play mechanism which already has proper timing
-            System.Diagnostics.Debug.WriteLine($"Using existing auto-play system for animation");
             
             // First priority: Try to move to foundations (upper stacks)
             if (TryMoveCardToAppropriateFoundation(card))
             {
-                System.Diagnostics.Debug.WriteLine($"TryAutoMoveCard succeeded - moved to foundation");
                 // Mark the card as recently moved to prevent immediate re-moves
                 _recentlyMovedCards.Add(card);
                 _ = Task.Delay(3000).ContinueWith(_ => _recentlyMovedCards.Remove(card)); // Increased delay to 3 seconds
@@ -427,7 +409,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
             // Second priority: Try to move to other tableaus (lower stacks)
             if (TryMoveCardToAppropriateTableau(card))
             {
-                System.Diagnostics.Debug.WriteLine($"TryAutoMoveCard succeeded - moved to tableau");
                 // Mark the card as recently moved to prevent immediate re-moves
                 _recentlyMovedCards.Add(card);
                 _ = Task.Delay(3000).ContinueWith(_ => _recentlyMovedCards.Remove(card)); // Increased delay to 3 seconds
@@ -437,7 +418,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 return true;
             }
 
-            System.Diagnostics.Debug.WriteLine($"TryAutoMoveCard failed - no valid moves found");
             return false;
         }
         finally
@@ -458,7 +438,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
         // Prevent auto-move from interfering with recently manually moved cards
         if (_recentlyMovedCards.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"TryMoveCardToAppropriateTableau rejected - card recently manually moved");
             return false;
         }
 
@@ -565,25 +544,21 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
         bool checkOnly = false)
     {
         // Add debugging to understand when this method is being called
-        System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard called - From: {GetCollectionName(from)}, To: {GetCollectionName(to)}, Card: {card.CardType}, CheckOnly: {checkOnly}");
         
         // Add stack trace to understand where this call is coming from
         var stackTrace = new System.Diagnostics.StackTrace();
         var caller = stackTrace.GetFrame(1)?.GetMethod()?.Name ?? "Unknown";
         var callerClass = stackTrace.GetFrame(1)?.GetMethod()?.DeclaringType?.Name ?? "Unknown";
-        System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard called from: {callerClass}.{caller}");
         
         // Prevent cards that were recently moved to foundations from being moved back
         if (_recentlyMovedToFoundation.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - card recently moved to foundation");
             return false;
         }
         
         //  The trivial case is where from and to are the same.
         if (from.SequenceEqual(to))
         {
-            System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - same collection");
             return false;
         }
 
@@ -604,11 +579,9 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 {
                     //  Move from waste to foundation.
                     scoreModifier = 10;
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - Waste to Foundation, Score: {scoreModifier}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid waste to foundation move");
                     return false;
                 }
             }
@@ -623,18 +596,15 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 {
                     //  Move from waste to tableau.
                     scoreModifier = 5;
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - Waste to Tableau, Score: {scoreModifier}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid waste to tableau move");
                     return false;
                 }
             }
             //  Any other move from the waste is wrong.
             else
             {
-                System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid waste move");
                 return false;
             }
         }
@@ -644,33 +614,22 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
             //  Are we moving to a foundation?
             if (_foundations.Contains(to))
             {
-                System.Diagnostics.Debug.WriteLine($"Tableau to Foundation move validation:");
-                System.Diagnostics.Debug.WriteLine($"  Card: {card.CardType}, Value: {card.Value}, Suit: {card.Suit}");
-                System.Diagnostics.Debug.WriteLine($"  Target foundation count: {to.Count}");
-                System.Diagnostics.Debug.WriteLine($"  Foundation expected suit: {GetSuitForFoundations(to)}");
-                System.Diagnostics.Debug.WriteLine($"  Suit match: {GetSuitForFoundations(to)} == {card.Suit} = {GetSuitForFoundations(to) == card.Suit}");
                 
                 // FIX: Check if the card is the top card of its stack (no cards on top)
                 var cardIndex = from.IndexOf(card);
                 var isTopCard = cardIndex == from.Count - 1;
-                System.Diagnostics.Debug.WriteLine($"  Card index: {cardIndex}, Stack count: {from.Count}, Is top card: {isTopCard}");
                 
                 if (!isTopCard)
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - card is not the top card of its stack");
                     return false;
                 }
                 
                 if (to.Count > 0)
                 {
                     var targetTopCard = to.Last();
-                    System.Diagnostics.Debug.WriteLine($"  Target top card: {targetTopCard.CardType}, Value: {targetTopCard.Value}, Suit: {targetTopCard.Suit}");
-                    System.Diagnostics.Debug.WriteLine($"  Value check: {targetTopCard.Value} == {card.Value} - 1 = {targetTopCard.Value == card.Value - 1}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"  Empty foundation - requires Ace (value 0)");
-                    System.Diagnostics.Debug.WriteLine($"  Card value check: {card.Value} == 0 = {card.Value == 0}");
                 }
                 
                 //  We can move to a foundation only if:
@@ -682,40 +641,27 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 {
                     //  Move from tableau to foundation.
                     scoreModifier = 10;
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - Tableau to Foundation, Score: {scoreModifier}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid tableau to foundation move");
                     if (GetSuitForFoundations(to) != card.Suit)
-                        System.Diagnostics.Debug.WriteLine($"  Rejection reason: Suit mismatch - foundation expects {GetSuitForFoundations(to)}, card is {card.Suit}");
                     else if (to.Count == 0 && card.Value != 0)
-                        System.Diagnostics.Debug.WriteLine($"  Rejection reason: Empty foundation requires Ace (value 0), but card has value {card.Value}");
                     else if (to.Count > 0 && to.Last().Suit != card.Suit)
-                        System.Diagnostics.Debug.WriteLine($"  Rejection reason: Top card suit {to.Last().Suit} doesn't match card suit {card.Suit}");
                     else if (to.Count > 0 && to.Last().Value != card.Value - 1)
-                        System.Diagnostics.Debug.WriteLine($"  Rejection reason: Top card value {to.Last().Value} should be {card.Value - 1}");
                     return false;
                 }
             }
             //  Are we moving to another tableau?
             else if (_tableauSet.Contains(to))
             {
-                System.Diagnostics.Debug.WriteLine($"Tableau to Tableau move validation:");
-                System.Diagnostics.Debug.WriteLine($"  Card: {card.CardType}, Value: {card.Value}, Colour: {card.Colour}");
-                System.Diagnostics.Debug.WriteLine($"  Target tableau count: {to.Count}");
                 
                 // Note: In Klondike Solitaire, you can move cards from the middle of a tableau stack
                 // as long as you move the entire sequence from that card to the top
                 var cardIndex = from.IndexOf(card);
-                System.Diagnostics.Debug.WriteLine($"  Card index: {cardIndex}, Stack count: {from.Count}");
                 
                 if (to.Count > 0)
                 {
                     var targetTopCard = to.Last();
-                    System.Diagnostics.Debug.WriteLine($"  Target top card: {targetTopCard.CardType}, Value: {targetTopCard.Value}, Colour: {targetTopCard.Colour}");
-                    System.Diagnostics.Debug.WriteLine($"  Colour check: {targetTopCard.Colour} != {card.Colour} = {targetTopCard.Colour != card.Colour}");
-                    System.Diagnostics.Debug.WriteLine($"  Value check: {targetTopCard.Value} == {card.Value} + 1 = {targetTopCard.Value == card.Value + 1}");
                 }
                 
                 //  We can move to a tableau only if:
@@ -727,18 +673,14 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 {
                     //  Move from tableau to tableau.
                     scoreModifier = 0;
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - Tableau to Tableau, Score: {scoreModifier}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid tableau to tableau move");
                     if (to.Count == 0)
                     {
-                        System.Diagnostics.Debug.WriteLine($"  Rejection reason: Empty tableau requires King (value 12), but card has value {card.Value}");
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"  Rejection reason: Colour or value mismatch");
                     }
                     return false;
                 }
@@ -746,7 +688,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
             //  Any other move from a tableau is wrong.
             else
             {
-                System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid tableau move");
                 return false;
             }
         }
@@ -764,11 +705,9 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 {
                     //  Move from foundation to tableau.
                     scoreModifier = -15;
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - Foundation to Tableau, Score: {scoreModifier}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid foundation to tableau move");
                     return false;
                 }
             }
@@ -777,7 +716,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
             {
                 if (GetSuitForFoundations(to) != card.Suit && card.Value == 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid foundation to foundation move");
                     return false;
                 }
                 
@@ -788,37 +726,31 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 {
                     //  The move is valid, but has no impact on the score.
                     scoreModifier = 0;
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - Foundation to Foundation, Score: {scoreModifier}");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid foundation to foundation move");
                     return false;
                 }
             }
             //  Any other move from a foundation is wrong.
             else
             {
-                System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - invalid foundation move");
                 return false;
             }
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - unknown source collection");
             return false;
         }
 
         //  If we were just checking, we're done.
         if (checkOnly)
         {
-            System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - check only, returning true");
             return true;
         }
 
         //  If we've got here we've passed all tests
         //  and move the card and update the score.
-        System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - executing move with score: {scoreModifier}");
         MoveCard(from, to, card, scoreModifier);
         Score += scoreModifier;
         Moves++;
@@ -841,7 +773,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
         //  Check for victory.
         CheckForVictory();
 
-        System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard - move completed successfully");
         return true;
     }
 
@@ -969,12 +900,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
     /// </summary>
     public void DebugGameState()
     {
-        System.Diagnostics.Debug.WriteLine("=== GAME STATE DEBUG ===");
-        System.Diagnostics.Debug.WriteLine($"Score: {Score}, Moves: {Moves}");
-        System.Diagnostics.Debug.WriteLine($"Recently moved cards: {_recentlyMovedCards.Count}");
-        System.Diagnostics.Debug.WriteLine($"Recently moved to foundation: {_recentlyMovedToFoundation.Count}");
-        System.Diagnostics.Debug.WriteLine($"Processing cards: {_processingCards.Count}");
-        System.Diagnostics.Debug.WriteLine($"Is auto-moving: {_isAutoMoving}");
         
         // Check for face-down cards that should be face-up
         foreach (var tableau in _tableauSet)
@@ -984,11 +909,9 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 var topCard = tableau.Last();
                 if (topCard.IsFaceDown && !topCard.IsPlayable)
                 {
-                    System.Diagnostics.Debug.WriteLine($"WARNING: Top card of tableau is face-down and not playable: {topCard.CardType}");
                 }
             }
         }
-        System.Diagnostics.Debug.WriteLine("=== END DEBUG ===");
     }
 
     /// <summary>
@@ -997,20 +920,16 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
     /// <param name="card">The card that was selected.</param>
     public void HandleCardSelection(PlayingCardViewModel card)
     {
-        System.Diagnostics.Debug.WriteLine($"HandleCardSelection called for card: {card.CardType}");
-        System.Diagnostics.Debug.WriteLine($"Card state - FaceDown: {card.IsFaceDown}, Playable: {card.IsPlayable}");
         
         // FIX: Prevent selection during auto-move to avoid race conditions
         if (_isAutoMoving)
         {
-            System.Diagnostics.Debug.WriteLine($"HandleCardSelection blocked - auto-move in progress for {card.CardType}");
             return;
         }
         
         // FIX: Prevent selection of recently moved cards
         if (_recentlyMovedCards.Contains(card))
         {
-            System.Diagnostics.Debug.WriteLine($"HandleCardSelection blocked - card {card.CardType} was recently moved");
             return;
         }
         
@@ -1021,7 +940,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
             var hasRecentlyMovedCard = cardCollection.Any(c => _recentlyMovedCards.Contains(c));
             if (hasRecentlyMovedCard)
             {
-                System.Diagnostics.Debug.WriteLine($"HandleCardSelection blocked - card {card.CardType} in collection with recently moved card");
                 return;
             }
         }
@@ -1029,13 +947,10 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
         // Only allow selection of face-up, playable cards
         if (!card.IsFaceDown && card.IsPlayable)
         {
-            System.Diagnostics.Debug.WriteLine($"Selecting card: {card.CardType}");
             SelectCard(card);
-            System.Diagnostics.Debug.WriteLine($"Card selected: {card.CardType}, IsSelected: {card.IsSelected}");
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine($"Card selection rejected: {card.CardType} - FaceDown: {card.IsFaceDown}, Playable: {card.IsPlayable}");
         }
     }
 
@@ -1045,7 +960,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
     public void HandleCardDeselection()
     {
         DeselectCard();
-        System.Diagnostics.Debug.WriteLine("Card deselected");
     }
 
     /// <summary>
@@ -1055,32 +969,23 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
     /// <returns>True if the move was successful, false otherwise.</returns>
     public bool TryMoveSelectedCardTo(IList<PlayingCardViewModel> targetCollection)
     {
-        System.Diagnostics.Debug.WriteLine($"=== TryMoveSelectedCardTo called ===");
-        System.Diagnostics.Debug.WriteLine($"Target collection: {GetCollectionName(targetCollection)}");
         
         if (_selectedCard == null)
         {
-            System.Diagnostics.Debug.WriteLine("No card selected for move");
             return false;
         }
 
         var card = _selectedCard;
-        System.Diagnostics.Debug.WriteLine($"Selected card: {card.CardType}");
         var sourceCollection = GetCardCollection(card);
         
         if (sourceCollection == null)
         {
-            System.Diagnostics.Debug.WriteLine("Could not determine source collection for selected card");
             return false;
         }
 
-        System.Diagnostics.Debug.WriteLine($"Attempting to move {card.CardType} from {GetCollectionName(sourceCollection)} to {GetCollectionName(targetCollection)}");
-        System.Diagnostics.Debug.WriteLine($"Card details - FaceDown: {card.IsFaceDown}, Playable: {card.IsPlayable}, Value: {card.Value}, Suit: {card.Suit}");
-        System.Diagnostics.Debug.WriteLine($"Target collection count: {targetCollection.Count}");
         if (targetCollection.Count > 0)
         {
             var targetTopCard = targetCollection.Last();
-            System.Diagnostics.Debug.WriteLine($"Target top card: {targetTopCard.CardType}, FaceDown: {targetTopCard.IsFaceDown}, Value: {targetTopCard.Value}, Suit: {targetTopCard.Suit}, Colour: {targetTopCard.Colour}");
         }
 
         // Try to move the card
@@ -1088,18 +993,15 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
         
         if (success)
         {
-            System.Diagnostics.Debug.WriteLine($"Move successful, clearing selection");
             // Clear selection after successful move
             DeselectCard();
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine($"Move failed, keeping selection for retry");
             // Keep selection if move failed so user can try again
             // Don't call DeselectCard() here
         }
 
-        System.Diagnostics.Debug.WriteLine($"=== TryMoveSelectedCardTo completed ===");
         return success;
     }
 
@@ -1178,7 +1080,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
     /// <param name="isSelected">Whether the card should appear selected.</param>
     protected override void UpdateCardVisualSelection(PlayingCardViewModel card, bool isSelected)
     {
-        System.Diagnostics.Debug.WriteLine($"Klondike UpdateCardVisualSelection called for {card.CardType}, isSelected: {isSelected}");
         
         // Note: The visual selection state is now handled directly in the CardFieldBehavior
         // when the SingleTapped event is processed, so this method doesn't need to do anything

@@ -146,14 +146,11 @@ public class CardFieldBehavior : Behavior<Canvas>
 
     private bool ResetDragAndKeyMove(bool returnHome = true)
     {
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: ResetDragAndKeyMove called - returnHome: {returnHome} !!!");
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Before reset - _isDragging: {_isDragging}, _draggingContainers: {_draggingContainers?.Count ?? 0}, _homeStack: {_homeStack?.Name ?? "NULL"} !!!");
         
         if (!_isDragging && !_keyboardMove) return false;
 
         if (_draggingContainers is not null)
         {
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Resetting dragging containers !!!");
             foreach (var pair in _draggingContainers.Select((container, i) => (container, i)))
             {
                 pair.container.Classes.Remove("dragging");
@@ -174,7 +171,6 @@ public class CardFieldBehavior : Behavior<Canvas>
 
         _keyMoveContainers?.LastOrDefault()?.Focus(NavigationMethod.Directional);
 
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Resetting drag state variables !!!");
         _isDragging = false;
         _draggingCards = null;
         _draggingContainers = null;
@@ -189,7 +185,6 @@ public class CardFieldBehavior : Behavior<Canvas>
         // FIX: Clear home stack reference to prevent state corruption
         _homeStack = null;
         
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: After reset - _isDragging: {_isDragging}, _draggingContainers: {_draggingContainers?.Count ?? 0}, _homeStack: {_homeStack?.Name ?? "NULL"} !!!");
 
         _keyboardMove = false;
         _keyboardMoveCards = null;
@@ -206,61 +201,39 @@ public class CardFieldBehavior : Behavior<Canvas>
             // FIX: Check if card is in cooldown after auto-move
             if (_recentlyAutoMovedCards.Contains(_potentialDragCard))
             {
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Card {_potentialDragCard.CardType} in cooldown after auto-move - skipping drag detection !!!");
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Cooldown check hit in drag detection at: {DateTime.Now:HH:mm:ss.fff} !!!");
                 return;
             }
             
             try
             {
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Starting drag detection logic !!!");
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Current drag state - _isDragging: {_isDragging}, _draggingContainers: {_draggingContainers?.Count ?? 0}, _homeStack: {_homeStack?.Name ?? "NULL"} !!!");
                 
                 // FIX: Ensure _potentialDragStartPoint is properly initialized
                 if (_potentialDragStartPoint == default(Point))
                 {
-                    System.Diagnostics.Debug.WriteLine($"!!! WARNING: _potentialDragStartPoint not initialized !!!");
                     _potentialDragStartPoint = e.GetCurrentPoint(_potentialDragStack).Position;
                 }
                 
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Getting current point !!!");
                 var potentialDragCurrentPoint = e.GetCurrentPoint(_potentialDragStack);
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Current point obtained: {potentialDragCurrentPoint.Position} !!!");
                 
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Calculating delta !!!");
                 var potentialDragDelta = potentialDragCurrentPoint.Position - _potentialDragStartPoint;
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Delta calculated: {potentialDragDelta} !!!");
                 
                 // Check if there's significant movement to trigger actual drag
                 var potentialDragMovementThreshold = 5.0; // 5 pixels minimum movement
                 var hasPotentialDragMovement = Math.Abs(potentialDragDelta.X) > potentialDragMovementThreshold || Math.Abs(potentialDragDelta.Y) > potentialDragMovementThreshold;
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Movement threshold check: {hasPotentialDragMovement} !!!");
                 
                 if (hasPotentialDragMovement)
                 {
-                    System.Diagnostics.Debug.WriteLine($"!!! ACTUAL DRAG DETECTED !!!");
-                    System.Diagnostics.Debug.WriteLine($"Card: {_potentialDragCard.CardType}, Movement: {potentialDragDelta.X:F1}, {potentialDragDelta.Y:F1}");
-                    System.Diagnostics.Debug.WriteLine($"Time: {DateTime.Now:HH:mm:ss.fff}");
                     
                     // DEBUG: Check parameters before calling PrepareForDrag
-                    System.Diagnostics.Debug.WriteLine($"!!! DEBUG: PrepareForDrag parameters !!!");
-                    System.Diagnostics.Debug.WriteLine($"Card: {_potentialDragCard?.CardType.ToString() ?? "NULL"}");
-                    System.Diagnostics.Debug.WriteLine($"Stack: {_potentialDragStack?.Name ?? "NULL"}");
-                    System.Diagnostics.Debug.WriteLine($"EventArgs: {e != null}");
-                    System.Diagnostics.Debug.WriteLine($"Card null: {_potentialDragCard == null}");
-                    System.Diagnostics.Debug.WriteLine($"Stack null: {_potentialDragStack == null}");
                     
                     // FIX: Safety check to prevent null reference exceptions
                     if (_potentialDragCard != null && _potentialDragStack != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: About to call PrepareForDrag !!!");
                         // Now prepare for actual drag
                         PrepareForDrag(_potentialDragCard, _potentialDragStack, e);
-                        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: PrepareForDrag completed successfully !!!");
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"!!! ERROR: Cannot prepare for drag - null parameters detected !!!");
                     }
                     
                     // Clear potential drag info
@@ -270,8 +243,6 @@ public class CardFieldBehavior : Behavior<Canvas>
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"!!! ERROR in drag detection: {ex.Message} !!!");
-                System.Diagnostics.Debug.WriteLine($"!!! ERROR stack trace: {ex.StackTrace} !!!");
                 // Clear potential drag info on error to prevent further crashes
                 _potentialDragCard = null;
                 _potentialDragStack = null;
@@ -299,12 +270,9 @@ public class CardFieldBehavior : Behavior<Canvas>
                 var dragZIndex = 2100000000 + draggingContainer.i; // Same high value as in PrepareForDrag
                 draggingContainer.control.ZIndex = dragZIndex;
                 
-                System.Diagnostics.Debug.WriteLine($"!!! DRAG Z-INDEX SET ON MOVEMENT !!!");
                 if (_draggingCards != null && draggingContainer.i < _draggingCards.Count)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Card: {_draggingCards[draggingContainer.i].CardType}, Drag Z-Index: {dragZIndex}");
                 }
-                System.Diagnostics.Debug.WriteLine($"Movement: {delta.X:F1}, {delta.Y:F1}");
             }
         }
         
@@ -322,30 +290,24 @@ public class CardFieldBehavior : Behavior<Canvas>
     /// </summary>
     private void PrepareForDrag(PlayingCardViewModel card, CardStackPlacementControl stack, PointerEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: PrepareForDrag started !!!");
         
         if (stack.SourceItems == null) 
         {
-            System.Diagnostics.Debug.WriteLine($"!!! ERROR: stack.SourceItems is null !!!");
             return;
         }
         
         // FIX: Add null checks to prevent crashes
         if (card == null || stack == null || e == null)
         {
-            System.Diagnostics.Debug.WriteLine($"!!! PrepareForDrag: Null parameter detected !!!");
-            System.Diagnostics.Debug.WriteLine($"Card: {card?.CardType.ToString() ?? "NULL"}, Stack: {stack?.Name ?? "NULL"}, EventArgs: {e != null}");
             return;
         }
         
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Parameters validated, clearing collections !!!");
         // FIX: Clear collections for new drag
         _draggingCards?.Clear();
         _draggingContainers?.Clear();
         _startZIndices?.Clear();
         _homePoints?.Clear();
         
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Collections cleared successfully !!!");
         
         // FIX: Initialize collections if needed
         if (_draggingCards == null) _draggingCards = new List<PlayingCardViewModel>();
@@ -353,57 +315,41 @@ public class CardFieldBehavior : Behavior<Canvas>
         if (_startZIndices == null) _startZIndices = new List<int>();
         if (_homePoints == null) _homePoints = new List<Point>();
         
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Collections initialized successfully !!!");
         
         // FIX: Get the card's index in the stack
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: About to get card index from stack !!!");
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Stack SourceItems reference: {stack.SourceItems?.GetHashCode() ?? 0} !!!");
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Stack SourceItems count: {stack.SourceItems?.Count ?? 0} !!!");
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Card reference: {card.GetHashCode()} !!!");
         
         var cardIndex = stack.SourceItems.IndexOf(card);
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Card index found: {cardIndex} !!!");
         
         // FIX: If the card is not found in the stack (e.g., after auto-move), abort the drag
         if (cardIndex == -1)
         {
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Card {card.CardType} not found in stack - aborting drag (likely auto-moved) !!!");
             return;
         }
         
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: About to iterate through cards !!!");
         foreach (var c in stack.SourceItems.Select((card2, i) => (card2, i))
                      .Where(a => a.i >= cardIndex))
         {
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Processing card {c.card2.CardType} at index {c.i} !!!");
             
             if (!_containerCache.TryGetValue(c.card2, out var cachedContainer)) 
             {
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Container not found for card {c.card2.CardType} !!!");
                 continue;
             }
             
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Container found, adding to collections !!!");
             _draggingContainers.Add(cachedContainer);
             _draggingCards.Add(c.card2);
             _startZIndices.Add(cachedContainer.ZIndex);
             
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Getting home position !!!");
             var homePos = GetHomePosition(cachedContainer);
             _homePoints.Add(homePos.HasValue ? new Point(homePos.Value.X, homePos.Value.Y) : new Point());
             
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Adding dragging class !!!");
             cachedContainer.Classes.Add("dragging");
         }
         
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Finished processing cards, checking count !!!");
         if (_draggingContainers.Count == 0) 
         {
-            System.Diagnostics.Debug.WriteLine($"!!! ERROR: No dragging containers prepared !!!");
             return;
         }
         
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Setting up drag state !!!");
         _isDragging = true;
         _homeStack = stack;
         
@@ -412,28 +358,21 @@ public class CardFieldBehavior : Behavior<Canvas>
         {
             var dragZIndex = 2100000000 + draggingContainer.i; // Much higher than base Z-index of 2000000000
             draggingContainer.control.ZIndex = dragZIndex;
-            System.Diagnostics.Debug.WriteLine($"!!! DRAG Z-INDEX SET ON PREPARATION !!!");
             if (_draggingCards != null && draggingContainer.i < _draggingCards.Count)
             {
-                System.Diagnostics.Debug.WriteLine($"Card: {_draggingCards[draggingContainer.i].CardType}, Drag Z-Index: {dragZIndex}");
             }
         }
         
         // FIX: Use the current pointer position instead of potentially null _potentialDragStartPoint
-        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Getting current pointer position !!!");
         var currentPoint = e.GetCurrentPoint(stack);
         _startPoint = currentPoint.Position;
         
         // Capture the pointer for the first dragging container
         if (_draggingContainers.Count > 0)
         {
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Capturing pointer !!!");
             e.Pointer.Capture(_draggingContainers[0]);
         }
         
-        System.Diagnostics.Debug.WriteLine($"!!! DRAG PREPARATION COMPLETED !!!");
-        System.Diagnostics.Debug.WriteLine($"Cards prepared: {_draggingCards.Count}");
-        System.Diagnostics.Debug.WriteLine($"Time: {DateTime.Now:HH:mm:ss.fff}");
     }
 
     private static void SetCanvasPosition(AvaloniaObject? control, Vector newVector)
@@ -573,32 +512,23 @@ public class CardFieldBehavior : Behavior<Canvas>
         var gameForCheck = cardStacksForCheck.FirstOrDefault()?.DataContext as CardGameViewModel;
         if (gameForCheck is KlondikeSolitaireViewModel klondikeGameForCheck && klondikeGameForCheck.IsAutoMoving)
         {
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Pointer pressed blocked - auto-move in progress !!!");
             return; // Don't allow drag detection during auto-move
         }
 
         if (_isDragging) return;
 
-        System.Diagnostics.Debug.WriteLine($"=== ULTRA DEBUG: OnPointerPressed START ===");
-        System.Diagnostics.Debug.WriteLine($"=== Time: {DateTime.Now:HH:mm:ss.fff} ===");
-        System.Diagnostics.Debug.WriteLine($"=== Cooldown count: {_recentlyAutoMovedCards.Count} ===");
-        System.Diagnostics.Debug.WriteLine($"=== Cooldown cards: {string.Join(", ", _recentlyAutoMovedCards.Select(c => c.CardType))} ===");
         
         if (e.Handled) 
         {
-            System.Diagnostics.Debug.WriteLine($"=== ULTRA DEBUG: Event already handled, returning ===");
             return;
         }
         
         // FIX: Only block drag preparation for specific cards in cooldown, not ALL interactions
         // This allows stock pile taps and other legitimate interactions to work
-        System.Diagnostics.Debug.WriteLine($"=== Cooldown check - count: {_recentlyAutoMovedCards.Count} ===");
         if (_recentlyAutoMovedCards.Any())
         {
-            System.Diagnostics.Debug.WriteLine($"=== Cooldown cards: {string.Join(", ", _recentlyAutoMovedCards.Select(c => c.CardType))} ===");
         }
         
-        System.Diagnostics.Debug.WriteLine($"=== ULTRA DEBUG: No cooldown detected, proceeding with normal logic ===");
 
         var absCur = e.GetCurrentPoint(TopLevel.GetTopLevel(AssociatedObject));
         var absCurPos = absCur.Position;
@@ -619,30 +549,21 @@ public class CardFieldBehavior : Behavior<Canvas>
             if (visual is Border { DataContext: CardGameViewModel game } border
                 && border.FindAncestorOfType<CardStackPlacementControl>() is { } stack1)
             {
-                System.Diagnostics.Debug.WriteLine($"=== Tapped on stack location ===");
-                System.Diagnostics.Debug.WriteLine($"Stack type: {GetStackType(stack1)}");
-                System.Diagnostics.Debug.WriteLine($"Stack has {stack1.SourceItems?.Count ?? 0} cards");
                 
                 // FIX: Handle move opportunity for selected cards to empty placement spots
                 if (game is KlondikeSolitaireViewModel klondikeGame && klondikeGame.SelectedCard != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"=== Move opportunity to empty spot ===");
-                    System.Diagnostics.Debug.WriteLine($"Selected card: {klondikeGame.SelectedCard.CardType}");
-                    System.Diagnostics.Debug.WriteLine($"Target stack: {stack1.Name ?? "unnamed"}");
-                    System.Diagnostics.Debug.WriteLine($"Target has {stack1.SourceItems?.Count ?? 0} cards");
                     
                     // Try to move the selected card to this empty spot
                     var targetCollection = stack1.SourceItems ?? new BatchObservableCollection<PlayingCardViewModel>();
                     var success = klondikeGame.TryMoveSelectedCardTo(targetCollection);
                     if (success)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Move to empty spot successful!");
                         e.Handled = true;
                         return; // Don't proceed with other logic
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"Move to empty spot failed");
                     }
                 }
                 
@@ -662,11 +583,6 @@ public class CardFieldBehavior : Behavior<Canvas>
 
             if (stack2 is null) return;
 
-            System.Diagnostics.Debug.WriteLine($"=== Stack detection debugging ===");
-            System.Diagnostics.Debug.WriteLine($"Tapped card: {card.CardType}");
-            System.Diagnostics.Debug.WriteLine($"Found stack: {stack2.Name ?? "unnamed"}");
-            System.Diagnostics.Debug.WriteLine($"Stack SourceItems reference: {stack2.SourceItems?.GetHashCode()}");
-            System.Diagnostics.Debug.WriteLine($"Stack SourceItems count: {stack2.SourceItems?.Count ?? 0}");
             
             // Move opportunity logic is now handled in OnCardSingleTapped
             // This prevents conflicts and ensures proper selection state management
@@ -683,27 +599,16 @@ public class CardFieldBehavior : Behavior<Canvas>
             
             if (card.IsPlayable && !_isDragging)
             {
-                System.Diagnostics.Debug.WriteLine($"=== ULTRA DEBUG: Checking card {card.CardType} for drag marking ===");
-                System.Diagnostics.Debug.WriteLine($"=== Card is playable: {card.IsPlayable} ===");
-                System.Diagnostics.Debug.WriteLine($"=== Is dragging: {_isDragging} ===");
-                System.Diagnostics.Debug.WriteLine($"=== Cooldown count: {_recentlyAutoMovedCards.Count} ===");
-                System.Diagnostics.Debug.WriteLine($"=== Cooldown cards: {string.Join(", ", _recentlyAutoMovedCards.Select(c => c.CardType))} ===");
                 
                 // NUCLEAR OPTION 2: Check if THIS SPECIFIC CARD is in cooldown before marking it as draggable
                 if (_recentlyAutoMovedCards.Contains(card))
                 {
-                    System.Diagnostics.Debug.WriteLine($"=== NUCLEAR OPTION 2: Card {card.CardType} in cooldown - blocking drag marking ===");
-                    System.Diagnostics.Debug.WriteLine($"=== Cooldown check hit at: {DateTime.Now:HH:mm:ss.fff} ===");
                     continue; // Skip this card, try the next one
                 }
                 
-                System.Diagnostics.Debug.WriteLine($"=== ULTRA DEBUG: Card {card.CardType} NOT in cooldown, proceeding with drag marking ===");
                 
                 // Don't prepare for drag immediately - just mark the card as potentially draggable
                 // Drag preparation will happen in PointerMoved only if there's actual movement
-                System.Diagnostics.Debug.WriteLine($"=== Card marked as potentially draggable ===");
-                System.Diagnostics.Debug.WriteLine($"Card: {card.CardType}, Stack: {stack2.Name ?? "unnamed"}");
-                System.Diagnostics.Debug.WriteLine($"Time: {DateTime.Now:HH:mm:ss.fff}");
                 
                 // Store minimal drag info without setting Z-index or classes
                 _potentialDragCard = card;
@@ -753,8 +658,6 @@ public class CardFieldBehavior : Behavior<Canvas>
         var gameForCheck = cardStacksForCheck.FirstOrDefault()?.DataContext as CardGameViewModel;
         if (gameForCheck is KlondikeSolitaireViewModel klondikeGameForCheck && klondikeGameForCheck.IsAutoMoving)
         {
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Auto-move in progress - blocking double-tap for {card.CardType} !!!");
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Auto-move double-tap block at: {DateTime.Now:HH:mm:ss.fff} !!!");
             return; // Don't allow double-tap during auto-move
         }
 
@@ -767,23 +670,17 @@ public class CardFieldBehavior : Behavior<Canvas>
             // FIX: Set cooldown IMMEDIATELY when auto-move starts to prevent re-dragging
             _recentlyAutoMovedCards.Add(card);
             _autoMoveCooldowns[card] = DateTime.Now;
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: PRE-EMPTIVE cooldown set for {card.CardType} at {DateTime.Now:HH:mm:ss.fff} !!!");
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Pre-emptive cooldown count: {_recentlyAutoMovedCards.Count} !!!");
             
             // Try to auto-move the card (now async)
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: About to call TryAutoMoveCard for {card.CardType} !!!");
             var success = await game.TryAutoMoveCard(card);
-            System.Diagnostics.Debug.WriteLine($"!!! DEBUG: TryAutoMoveCard returned: {success} for {card.CardType} !!!");
             
             // FIX: After auto-move, ensure comprehensive cleanup
             if (success)
             {
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Auto-move completed, performing comprehensive cleanup !!!");
                 
                 // 1. Clear card selection if this was the selected card
                 if (game is KlondikeSolitaireViewModel klondikeGame && klondikeGame.SelectedCard == card)
                 {
-                    System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Clearing selection for auto-moved card {card.CardType} !!!");
                     klondikeGame.HandleCardDeselection();
                 }
                 
@@ -791,7 +688,6 @@ public class CardFieldBehavior : Behavior<Canvas>
                 if (_containerCache.TryGetValue(card, out var cardControl))
                 {
                     cardControl.Classes.Remove("selected");
-                    System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Removed visual selection from {card.CardType} !!!");
                 }
                 
                 // 3. Force reset of any lingering drag state and pointer capture
@@ -802,7 +698,6 @@ public class CardFieldBehavior : Behavior<Canvas>
                 if (game is KlondikeSolitaireViewModel klondikeGame2)
                 {
                     klondikeGame2.HandleCardDeselection();
-                    System.Diagnostics.Debug.WriteLine($"!!! DEBUG: IMMEDIATE cleanup - cleared all card selection after auto-move !!!");
                 }
                 
                 // 5. FIX: Clear visual selection from ALL cards to prevent any lingering visual state
@@ -810,15 +705,12 @@ public class CardFieldBehavior : Behavior<Canvas>
                 {
                     kvp.Value.Classes.Remove("selected");
                 }
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Cleared visual selection from ALL cards !!!");
                 
                 // 6. Schedule removal of cooldown after 1 second
                 _ = Task.Delay(1000).ContinueWith(_ => 
                 {
                     _recentlyAutoMovedCards.Remove(card);
                     _autoMoveCooldowns.Remove(card);
-                    System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Cooldown expired for {card.CardType} at {DateTime.Now:HH:mm:ss.fff} !!!");
-                    System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Remaining cooldown count: {_recentlyAutoMovedCards.Count} !!!");
                 });
             }
             else
@@ -826,7 +718,6 @@ public class CardFieldBehavior : Behavior<Canvas>
                 // If auto-move failed, remove the pre-emptive cooldown
                 _recentlyAutoMovedCards.Remove(card);
                 _autoMoveCooldowns.Remove(card);
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Auto-move failed, removed pre-emptive cooldown for {card.CardType} !!!");
             }
         }
     }
@@ -838,22 +729,17 @@ public class CardFieldBehavior : Behavior<Canvas>
     /// <param name="e">The event arguments.</param>
     private void OnCardSingleTapped(object? sender, RoutedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("=== OnCardSingleTapped called ===");
-        System.Diagnostics.Debug.WriteLine($"Sender type: {sender?.GetType().Name}");
         
         if (sender is not PlayingCard playingCard)
         {
-            System.Diagnostics.Debug.WriteLine("OnCardSingleTapped: Sender is not PlayingCard");
             return;
         }
         
         if (playingCard.DataContext is not PlayingCardViewModel card)
         {
-            System.Diagnostics.Debug.WriteLine("OnCardSingleTapped: DataContext is not PlayingCardViewModel");
             return;
         }
 
-        System.Diagnostics.Debug.WriteLine($"OnCardSingleTapped: Card {card.CardType}, IsFaceDown: {card.IsFaceDown}, IsPlayable: {card.IsPlayable}");
 
         // Find the game instance
         var cardStacks = GetCardStacks(AssociatedObject!);
@@ -864,8 +750,6 @@ public class CardFieldBehavior : Behavior<Canvas>
             // FIX: Prevent any interactions during auto-move to avoid race conditions
             if (game is KlondikeSolitaireViewModel klondikeGame && klondikeGame.IsAutoMoving)
             {
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Auto-move in progress - blocking single-tap for {card.CardType} !!!");
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Auto-move block at: {DateTime.Now:HH:mm:ss.fff} !!!");
                 return; // Don't allow any interactions during auto-move
             }
 
@@ -873,27 +757,19 @@ public class CardFieldBehavior : Behavior<Canvas>
             // This prevents newly exposed cards from being selected when auto-moving from waste pile
             if (_recentlyAutoMovedCards.Contains(card))
             {
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Card {card.CardType} in cooldown - preventing selection !!!");
-                System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Cooldown check hit in single-tap at: {DateTime.Now:HH:mm:ss.fff} !!!");
                 return; // Don't allow selection of cards in cooldown
             }
 
-            System.Diagnostics.Debug.WriteLine($"OnCardSingleTapped: Found game instance of type {game.GetType().Name}");
             
             // Check for move opportunity BEFORE changing selection
             if (game is KlondikeSolitaireViewModel klondikeGameForMove && klondikeGameForMove.SelectedCard != null)
             {
                 var selectedCard = klondikeGameForMove.SelectedCard;
                 
-                System.Diagnostics.Debug.WriteLine($"=== Move opportunity check in OnCardSingleTapped ===");
-                System.Diagnostics.Debug.WriteLine($"SelectedCard from ViewModel: {selectedCard.CardType}");
-                System.Diagnostics.Debug.WriteLine($"Tapped card: {card.CardType}");
-                System.Diagnostics.Debug.WriteLine($"SelectedCard == Tapped card: {ReferenceEquals(selectedCard, card)}");
                 
                 // Only proceed if the tapped card is different from the selected card
                 if (!ReferenceEquals(selectedCard, card))
                 {
-                    System.Diagnostics.Debug.WriteLine($"Different card tapped - checking for move opportunity");
                     
                     // Find the target collection for the tapped card
                     var targetCollection = klondikeGameForMove.GetCardCollection(card);
@@ -901,42 +777,32 @@ public class CardFieldBehavior : Behavior<Canvas>
                     {
                         var sourceCollection = klondikeGameForMove.GetCardCollection(selectedCard);
                         
-                        System.Diagnostics.Debug.WriteLine($"Source collection: {GetCollectionName(sourceCollection)}");
-                        System.Diagnostics.Debug.WriteLine($"Target collection: {GetCollectionName(targetCollection)}");
-                        System.Diagnostics.Debug.WriteLine($"Source collection reference: {sourceCollection?.GetHashCode()}");
-                        System.Diagnostics.Debug.WriteLine($"Target collection reference: {targetCollection?.GetHashCode()}");
                         
                         if (sourceCollection != null && targetCollection != null && !sourceCollection.SequenceEqual(targetCollection))
                         {
-                            System.Diagnostics.Debug.WriteLine($"Attempting to move selected card {selectedCard.CardType} to target collection");
                             var success = klondikeGameForMove.TryMoveSelectedCardTo(targetCollection);
                             if (success)
                             {
-                                System.Diagnostics.Debug.WriteLine($"Move successful, clearing selection");
                                 // Clear visual selection - the ViewModel has already cleared the selection state
                                 if (_containerCache.TryGetValue(selectedCard, out var selectedCardControl))
                                 {
                                     selectedCardControl.Classes.Remove("selected");
-                                    System.Diagnostics.Debug.WriteLine($"Removed visual selection from {selectedCard.CardType}");
                                 }
                                 return; // Don't proceed with selection change
                             }
                             else
                             {
-                                System.Diagnostics.Debug.WriteLine($"Move failed, keeping selection for {selectedCard.CardType}");
                                 // Keep the visual selection since the move failed
                                 return; // Don't proceed with selection change
                             }
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"Move attempt skipped - same collection or invalid source");
                         }
                     }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Same card tapped - treating as deselection");
                     // If tapping the same card, deselect it
                     klondikeGameForMove.HandleCardDeselection();
                     
@@ -944,7 +810,6 @@ public class CardFieldBehavior : Behavior<Canvas>
                     if (_containerCache.TryGetValue(card, out var cardControl))
                     {
                         cardControl.Classes.Remove("selected");
-                        System.Diagnostics.Debug.WriteLine($"Removed visual selection from {card.CardType}");
                     }
                     
                     return; // Don't proceed with selection change
@@ -963,7 +828,6 @@ public class CardFieldBehavior : Behavior<Canvas>
                     var hasRecentlyAutoMovedCard = cardCollection.Any(c => _recentlyAutoMovedCards.Contains(c));
                     if (hasRecentlyAutoMovedCard)
                     {
-                        System.Diagnostics.Debug.WriteLine($"!!! DEBUG: Card {card.CardType} in collection with recently auto-moved card - preventing selection !!!");
                         return; // Don't allow selection
                     }
                 }
@@ -976,21 +840,17 @@ public class CardFieldBehavior : Behavior<Canvas>
                     if (_containerCache.TryGetValue(card, out var cardControl))
                     {
                         cardControl.Classes.Add("selected");
-                        System.Diagnostics.Debug.WriteLine($"Applied visual selection to {card.CardType}");
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"Warning: Could not find UI control for {card.CardType} to apply visual selection");
                     }
                 }
             }
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine($"OnCardSingleTapped: No game instance found");
         }
         
-        System.Diagnostics.Debug.WriteLine("=== OnCardSingleTapped completed ===");
     }
 
     private void AssociatedObjectOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
@@ -1068,14 +928,10 @@ public class CardFieldBehavior : Behavior<Canvas>
             if (!_containerCache.TryGetValue(pair.card, out var container)) return;
 
             // DEBUG: Log collection order and Z-index assignment
-            System.Diagnostics.Debug.WriteLine($"=== Card positioning debug ===");
-            System.Diagnostics.Debug.WriteLine($"Card: {pair.card.CardType}, Index: {pair.i}, Total: {control.SourceItems?.Count ?? 0}");
-            System.Diagnostics.Debug.WriteLine($"Z-Index assigned: {pair.i}");
 
             // Clear any visual selection state when cards are moved to new collections
             if (pair.card.IsSelected)
             {
-                System.Diagnostics.Debug.WriteLine($"Clearing visual selection for card {pair.card.CardType} moved to new collection");
                 container.Classes.Remove("selected");
             }
 
@@ -1113,22 +969,16 @@ public class CardFieldBehavior : Behavior<Canvas>
                 // Foundation: DON'T invert - highest index (most recent) should be on top
                 // pair.i is already correct: 0=Ace (bottom), 1=2 (above), 2=3 (above), etc.
                 newZIndex = 2000000000 + pair.i;
-                System.Diagnostics.Debug.WriteLine($"Foundation pile detected - normal Z-index for {pair.card.CardType} (index {pair.i})");
             }
             else
             {
                 // Tableau/other: keep normal order (face-up cards on top)
                 newZIndex = 2000000000 + pair.i;
-                System.Diagnostics.Debug.WriteLine($"Tableau/other collection - normal Z-index for {pair.card.CardType}");
             }
             
             container.ZIndex = newZIndex;
             
             // DEBUG: Track Z-index assignments with timing
-            System.Diagnostics.Debug.WriteLine($"=== Z-Index Assignment Debug ===");
-            System.Diagnostics.Debug.WriteLine($"Card: {pair.card.CardType}, Collection Index: {pair.i}, Z-Index: {newZIndex}");
-            System.Diagnostics.Debug.WriteLine($"Time: {DateTime.Now:HH:mm:ss.fff}");
-            System.Diagnostics.Debug.WriteLine($"Collection: {control.Name ?? "unnamed"}, Total Cards: {totalCards}, Type: {(control.Name?.Contains("Foundation") == true ? "Foundation" : "Tableau/Other")}");
             
             // MONITOR: Track if Z-index gets changed later (using UI thread-safe approach)
             var originalZIndex = newZIndex;
@@ -1141,9 +991,6 @@ public class CardFieldBehavior : Behavior<Canvas>
             {
                 if (container.ZIndex != originalZIndex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"!!! Z-Index OVERRIDE DETECTED !!!");
-                    System.Diagnostics.Debug.WriteLine($"Card: {pair.card.CardType}, Original: {originalZIndex}, Current: {container.ZIndex}");
-                    System.Diagnostics.Debug.WriteLine($"Time: {DateTime.Now:HH:mm:ss.fff}");
                 }
                 
                 // Stop the timer after 1 second
@@ -1167,7 +1014,6 @@ public class CardFieldBehavior : Behavior<Canvas>
                 {
                     // During auto-move, still update Z-index and positioning but skip immediate canvas positioning
                     // This ensures proper visual layering while allowing UI transitions to work naturally
-                    System.Diagnostics.Debug.WriteLine($"Auto-move detected for {pair.card.CardType} - updating Z-index and positioning");
                     // Don't skip - let the positioning logic run, just don't force immediate canvas updates
                 }
             }
@@ -1252,17 +1098,14 @@ public class CardFieldBehavior : Behavior<Canvas>
             if (isSelected)
             {
                 cardControl.Classes.Add("selected");
-                System.Diagnostics.Debug.WriteLine($"Added selection class to card {card.CardType}");
             }
             else
             {
                 cardControl.Classes.Remove("selected");
-                System.Diagnostics.Debug.WriteLine($"Removed selection class from card {card.CardType}");
             }
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine($"Card control not found in cache for {card.CardType}");
         }
     }
 

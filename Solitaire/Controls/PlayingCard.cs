@@ -50,31 +50,26 @@ public class PlayingCard : TemplatedControl
     {
         base.OnPointerPressed(e);
         
-        System.Diagnostics.Debug.WriteLine($"OnPointerPressed: Button={e.GetCurrentPoint(this).Properties.PointerUpdateKind}, IsLeftButton={e.GetCurrentPoint(this).Properties.IsLeftButtonPressed}");
         
         // Only handle left button presses
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            System.Diagnostics.Debug.WriteLine("OnPointerPressed: Not left button, ignoring");
             return;
         }
         
         // Prevent multiple double-tap events from being processed
         if (_isProcessingDoubleTap)
         {
-            System.Diagnostics.Debug.WriteLine("OnPointerPressed: Already processing double-tap, ignoring");
             return;
         }
         
         var currentTime = DateTime.Now;
         var timeSinceLastTap = (currentTime - _lastTapTime).TotalMilliseconds;
         
-        System.Diagnostics.Debug.WriteLine($"OnPointerPressed: Time since last tap: {timeSinceLastTap}ms");
         
         if (timeSinceLastTap <= DoubleTapThresholdMs)
         {
             // This is a double-tap
-            System.Diagnostics.Debug.WriteLine("OnPointerPressed: Double-tap detected");
             _isProcessingDoubleTap = true;
             RaiseEvent(new RoutedEventArgs(DoubleTappedEvent));
             _lastTapTime = DateTime.MinValue; // Reset to prevent triple-tap
@@ -85,7 +80,6 @@ public class PlayingCard : TemplatedControl
         else
         {
             // This is a single-tap
-            System.Diagnostics.Debug.WriteLine("OnPointerPressed: Single-tap detected, raising event immediately");
             _lastTapTime = currentTime;
             
             // Raise single-tap event immediately instead of with delay
