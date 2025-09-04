@@ -705,6 +705,17 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 System.Diagnostics.Debug.WriteLine($"  Card: {card.CardType}, Value: {card.Value}, Colour: {card.Colour}");
                 System.Diagnostics.Debug.WriteLine($"  Target tableau count: {to.Count}");
                 
+                // FIX: Check if the card is the top card of its stack (no cards on top)
+                var cardIndex = from.IndexOf(card);
+                var isTopCard = cardIndex == from.Count - 1;
+                System.Diagnostics.Debug.WriteLine($"  Card index: {cardIndex}, Stack count: {from.Count}, Is top card: {isTopCard}");
+                
+                if (!isTopCard)
+                {
+                    System.Diagnostics.Debug.WriteLine($"CheckAndMoveCard rejected - card is not the top card of its stack");
+                    return false;
+                }
+                
                 if (to.Count > 0)
                 {
                     var targetTopCard = to.Last();
@@ -716,6 +727,7 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 //  We can move to a tableau only if:
                 //  1. It is empty and we are a king.
                 //  2. It is card CN and we are color !C and Number N-1
+                //  3. The card is the top card of its stack (no cards on top)
                 if ((to.Count == 0 && card.Value == 12) ||
                     (to.Count > 0 && to.Last().Colour != card.Colour && to.Last().Value == card.Value + 1))
                 {
