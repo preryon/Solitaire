@@ -644,10 +644,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 }
                 else
                 {
-                    if (GetSuitForFoundations(to) != card.Suit)
-                    else if (to.Count == 0 && card.Value != 0)
-                    else if (to.Count > 0 && to.Last().Suit != card.Suit)
-                    else if (to.Count > 0 && to.Last().Value != card.Value - 1)
                     return false;
                 }
             }
@@ -676,10 +672,6 @@ public partial class KlondikeSolitaireViewModel : CardGameViewModel
                 }
                 else
                 {
-                    if (to.Count == 0)
-                    {
-                    }
-                    else
                     {
                     }
                     return false;
