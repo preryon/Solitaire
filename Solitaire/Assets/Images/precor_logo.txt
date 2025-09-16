@@ -1,0 +1,3 @@
+# This is a placeholder for the PRECOR logo image
+# In a real implementation, this would be replaced with an actual image file
+# The user provided a PRECOR-branded image that should be used here

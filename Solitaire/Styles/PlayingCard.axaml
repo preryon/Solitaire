@@ -32,7 +32,11 @@
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="{TemplateBinding CornerRadius}"
                         BoxShadow="{TemplateBinding Border.BoxShadow}">
-                        <Image Margin="{TemplateBinding Padding}" Source="{StaticResource CardBack}" />
+                        <Image Margin="{TemplateBinding Padding}" Source="/Assets/Images/precor_logo.png">
+                            <Image.RenderTransform>
+                                <Rotate3DTransform AngleY="180" />
+                            </Image.RenderTransform>
+                        </Image>
                         <Border.RenderTransform>
                             <Rotate3DTransform
                                 AngleY="180" />
