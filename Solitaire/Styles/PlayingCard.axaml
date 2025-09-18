@@ -32,7 +32,7 @@
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="{TemplateBinding CornerRadius}"
                         BoxShadow="{TemplateBinding Border.BoxShadow}">
-                        <Image Margin="{TemplateBinding Padding}" Source="/Assets/Images/precor_logo_tiny.jpg">
+                        <Image Margin="{TemplateBinding Padding}" Source="/Assets/Images/precor_logo_new_tiny.jpg">
                             <Image.RenderTransform>
                                 <Rotate3DTransform AngleY="180" />
                             </Image.RenderTransform>

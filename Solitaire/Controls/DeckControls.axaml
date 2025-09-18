@@ -7,58 +7,57 @@
              mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="650"
              x:Class="Solitaire.Controls.DeckControls"
              x:DataType="viewModels:CardGameViewModel"
-             Height="120"
-             Width="700"
+             Height="180"
+             Width="1575"
              ClipToBounds="False">
     
     <controls:TrayContainer x:Name="TrayContainer">
         <Grid ColumnDefinitions="Auto, Auto, *, Auto, Auto" 
-              VerticalAlignment="Center"
-              HorizontalAlignment="Stretch">
+              VerticalAlignment="Center" HorizontalAlignment="Stretch">
             
-            <Button Grid.Column="0" FontSize="24" VerticalAlignment="Center" Margin="10,0,0,0"
-                    Content="Undo"
+            <Button Grid.Column="0" FontSize="36" Width="234" Height="90" VerticalAlignment="Center" HorizontalAlignment="Center"  Margin="10,0,0,0"
+                    Content="Undo" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Command="{Binding UndoCommand}" />
 
-            <Button Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
-                    Content="Deal"
+            <Button Grid.Column="1" FontSize="36" Width="234" Height="90" VerticalAlignment="Center" HorizontalAlignment="Center"  Margin="10,0,0,0"
+                    Content="Deal" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Command="{Binding NewGameCommand}" />
 
             <!-- Score, moves, and time display -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20" 
-                        VerticalAlignment="Center" HorizontalAlignment="Center">
+                        VerticalAlignment="Center" HorizontalAlignment="Center" >
                 
-                <Border Background="Black" Padding="10" CornerRadius="5">
+                <Border Background="Black" Padding="15" CornerRadius="5" Width="150" MinWidth="150">
                     <StackPanel>
-                        <TextBlock Text="SCORE" FontSize="24" Foreground="White" HorizontalAlignment="Center" />
+                        <TextBlock Text="SCORE" FontSize="36" Foreground="White" HorizontalAlignment="Center" />
                         <TextBlock Text="{Binding Score, Mode=OneWay, FallbackValue=0}" 
-                                   FontSize="28" Foreground="Yellow" HorizontalAlignment="Center" />
+                                   FontSize="42" Foreground="Yellow" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Border>
                 
-                <Border Background="Black" Padding="10" CornerRadius="5">
+                <Border Background="Black" Padding="15" CornerRadius="5" Width="150" MinWidth="150">
                     <StackPanel>
-                        <TextBlock Text="MOVES" FontSize="24" Foreground="White" HorizontalAlignment="Center" />
+                        <TextBlock Text="MOVES" FontSize="36" Foreground="White" HorizontalAlignment="Center" />
                         <TextBlock Text="{Binding Moves, Mode=OneWay, FallbackValue=0}" 
-                                   FontSize="28" Foreground="Yellow" HorizontalAlignment="Center" />
+                                   FontSize="42" Foreground="Yellow" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Border>
                 
-                <Border Background="Black" Padding="10" CornerRadius="5">
+                <Border Background="Black" Padding="15" CornerRadius="5" Width="150" MinWidth="150">
                     <StackPanel>
-                        <TextBlock Text="TIME" FontSize="24" Foreground="White" HorizontalAlignment="Center" />
+                        <TextBlock Text="TIME" FontSize="36" Foreground="White" HorizontalAlignment="Center" />
                         <TextBlock Text="{Binding ElapsedTime, Converter={StaticResource TimeSpanToShortStringConverter}, Mode=OneWay, FallbackValue='00:00'}" 
-                                   FontSize="28" Foreground="Yellow" HorizontalAlignment="Center" />
+                                   FontSize="42" Foreground="Yellow" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Border>
             </StackPanel>
 
-            <Button Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0"
-                    Content="Auto"
+            <Button Grid.Column="3" FontSize="36" Width="234" Height="90" VerticalAlignment="Center" HorizontalAlignment="Center"  Margin="0,0,10,0"
+                    Content="Auto" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Command="{Binding AutoMoveCommand}" />
 
-            <Button Grid.Column="4" VerticalAlignment="Center" Margin="0,0,10,0"
-                    Content="Back"
+            <Button Grid.Column="4" FontSize="36" Width="234" Height="90" VerticalAlignment="Center" HorizontalAlignment="Center"  Margin="0,0,10,0"
+                    Content="Back" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Command="{Binding  NavigateToCasinoCommand}" />
         </Grid>
     </controls:TrayContainer>
